@@ -85,10 +85,12 @@ foreach ($w in $workspaces){
 }
 
 $startDate = $start.ToString("yyyy-MM-ddT00:00:00+00:00")
-$endDate = $end.ToString("yyyy-MM-ddT00:00:00+00:00")
+$endDate = $end.ToString("yyyy-MM-ddThh:mm:ss-05:00")
 # Sort and organize
-$workspaceList | where {($_.AppliedAt -gt "$($startDate)") -and ($_.AppliedAt -lt "$($endDate)")} | Group-Object WorkspaceId | select Count,@{L="WorkspaceName";e={$_.Group.WorkspaceName[0]}},@{L="ProjectName";e={$_.Group.ProjectName[0]}},@{L="WorkspaceID";e={$_.Group.WorkspaceId[0]}},@{L="ProjectId";e={$_.Group.Projectid[0]}} | sort ProjectName | Format-Table
+$appliedScope = $workspaceList | where {($_.AppliedAt -gt "$($startDate)") -and ($_.AppliedAt -lt "$($endDate)")}
+$workspaceCount = $appliedScope.count
+$appliedScope | Group-Object WorkspaceId | select Count,@{L="Percent";e={([math]::Round($_.count / $($workspaceCount),4) * 100)}}, @{L="WorkspaceName";e={$_.Group.WorkspaceName[0]}},@{L="ProjectName";e={$_.Group.ProjectName[0]}},@{L="WorkspaceID";e={$_.Group.WorkspaceId[0]}},@{L="ProjectId";e={$_.Group.Projectid[0]}} | sort ProjectName | Format-Table
 if ($file -ne $null){
-    $workspaceList | where {($_.AppliedAt -gt "$($startDate)") -and ($_.AppliedAt -lt "$($endDate)")} | Group-Object WorkspaceId | select Count,@{L="WorkspaceName";e={$_.Group.WorkspaceName[0]}},@{L="ProjectName";e={$_.Group.ProjectName[0]}},@{L="WorkspaceID";e={$_.Group.WorkspaceId[0]}},@{L="ProjectId";e={$_.Group.Projectid[0]}} | sort ProjectName | Export-Csv -Path $file -NoTypeInformation
+    $appliedScope | Group-Object WorkspaceId | select Count,@{L="Percent";e={([math]::Round($_.count / $($workspaceCount),4) * 100)}}, @{L="WorkspaceName";e={$_.Group.WorkspaceName[0]}},@{L="ProjectName";e={$_.Group.ProjectName[0]}},@{L="WorkspaceID";e={$_.Group.WorkspaceId[0]}},@{L="ProjectId";e={$_.Group.Projectid[0]}} | sort ProjectName | Export-Csv -Path $file -NoTypeInformation
 }
 }
